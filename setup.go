@@ -84,7 +84,7 @@ func hostsParse(c *caddy.Controller) (*Tailscale, error) {
 
 		args := c.RemainingArgs()
 
-		if len(args) != 3 {
+		if len(args) != 2 {
 			return h, c.ArgErr()
 		}
 		h.options.tailnet = args[0]
