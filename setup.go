@@ -133,6 +133,8 @@ func hostsParse(c *caddy.Controller) (*Tailscale, error) {
 				h.options.aaaa = true
 			case "casesensitive":
 				h.options.caseSensitive = true
+			case "fullname":
+				h.options.enableFullName = true
 			default:
 				return h, c.Errf("unknown property '%s'", c.Val())
 			}
