@@ -1,4 +1,4 @@
-module github.com/xruins/unifi-tailscale
+module github.com/xruins/tailscale-coredns
 
 go 1.22.0
 
