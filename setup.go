@@ -84,6 +84,8 @@ func hostsParse(c *caddy.Controller) (*Tailscale, error) {
 
 		args := c.RemainingArgs()
 
+		log.Debugf("arglen: %d", len(args))
+
 		if len(args) != 2 {
 			return h, c.ArgErr()
 		}
