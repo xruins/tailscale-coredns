@@ -1,4 +1,4 @@
-package unifi
+package tailscale
 
 import (
 	"context"

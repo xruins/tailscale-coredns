@@ -1,4 +1,4 @@
-package unifi
+package tailscale
 
 import (
 	"context"
@@ -61,7 +61,7 @@ tailscale example-ts.net 0123deadbeaf {
 		{
 			description: `only mandatory arguments are present`,
 			input: `
-unifi a.example-ts.net password`,
+tailscale a.example-ts.net password`,
 			wantOptions: options{
 				tailnet: "example-ts.net",
 				token:   "0123deafbeaf",

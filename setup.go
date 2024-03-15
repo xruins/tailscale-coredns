@@ -1,4 +1,4 @@
-package unifi
+package tailscale
 
 import (
 	"context"
@@ -13,9 +13,9 @@ import (
 	clog "github.com/coredns/coredns/plugin/pkg/log"
 )
 
-var log = clog.NewWithPlugin("unifi")
+var log = clog.NewWithPlugin("tailscale")
 
-func init() { plugin.Register("unifi", setup) }
+func init() { plugin.Register("tailscale", setup) }
 
 func periodicHostsUpdate(h *Tailscale) chan bool {
 	parseChan := make(chan bool)
