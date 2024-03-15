@@ -66,7 +66,7 @@ func (h *Tailscale) updateHosts(ctx context.Context) error {
 				addr,
 			)
 		}
-		h.hostMap[name] = host
+		newMap[name] = host
 	}
 
 	// lock mutex before update hostMap and metrics
