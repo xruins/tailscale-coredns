@@ -11,21 +11,22 @@ import (
 	"time"
 
 	"github.com/coredns/coredns/plugin"
+	clog "github.com/coredns/coredns/plugin/pkg/log"
 	"github.com/coredns/coredns/request"
 	"github.com/miekg/dns"
 	"github.com/tailscale/tailscale-client-go/tailscale"
 )
 
 type options struct {
-	aaaa           bool
-	reload         time.Duration
-	ttl            uint32
-	token          string
-	tailnet        string
-	fall           fall.F
-	enableFullName bool
-	caseSensitive  bool
-	debug          bool
+	aaaa            bool
+	reload          time.Duration
+	ttl             uint32
+	token           string
+	tailnet         string
+	fall            fall.F
+	enableFullName  bool
+	caseSensitive   bool
+	disableTopLevel bool
 }
 
 // Tailscale is the plugin handler to register Tailscale hosts to DNS
@@ -44,10 +45,7 @@ type Host struct {
 }
 
 func (h *Tailscale) Debugf(msg string, args ...any) {
-	if !h.options.debug {
-		return
-	}
-	fmt.Printf("[DEBUG] wireguard: "+msg, args...)
+	clog.Debugf("wireguard: "+msg, args...)
 }
 
 func (h *Tailscale) updateHosts(ctx context.Context) error {
@@ -57,7 +55,6 @@ func (h *Tailscale) updateHosts(ctx context.Context) error {
 	}
 	newMap := make(map[string]*Host, len(devices))
 	for _, device := range devices {
-		name := strings.Split(device.Name, ".")[0]
 		host := &Host{}
 		for _, addr := range device.Addresses {
 			ip := net.ParseIP(addr)
@@ -75,12 +72,18 @@ func (h *Tailscale) updateHosts(ctx context.Context) error {
 				addr,
 			)
 		}
-
-		if h.options.debug {
-			h.Debugf("hosts updated. diff: %s", cmp.Diff(h.hostMap, newMap))
+		name := device.Name
+		if h.options.enableFullName {
+			newMap[name] = host
 		}
+		if !h.options.disableTopLevel {
+			t := strings.Split(name, ".")[0]
+			newMap[t] = host
+		}
+	}
 
-		newMap[name] = host
+	if clog.D.Value() {
+		h.Debugf("hosts updated. diff: %s", cmp.Diff(h.hostMap, newMap))
 	}
 
 	// lock mutex before update hostMap and metrics
@@ -101,9 +104,6 @@ func (h *Tailscale) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.M
 	qname := state.Name()
 	if !h.options.caseSensitive {
 		qname = strings.ToLower(qname)
-	}
-	if h.options.enableFullName {
-		qname = strings.TrimPrefix(qname, h.options.tailnet)
 	}
 
 	var answers []dns.RR
