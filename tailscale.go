@@ -57,7 +57,7 @@ func (h *Tailscale) updateHosts(ctx context.Context) error {
 	}
 	newMap := make(map[string]*Host, len(devices))
 	for _, device := range devices {
-		name := strings.TrimPrefix(device.Name, "."+h.options.tailnet)
+		name := strings.Split(device.Name, ".")[0]
 		host := &Host{}
 		for _, addr := range device.Addresses {
 			ip := net.ParseIP(addr)
