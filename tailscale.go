@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/coredns/coredns/plugin/pkg/fall"
+	"github.com/google/go-cmp/cmp"
 	"net"
 	"strings"
 	"sync"
@@ -24,6 +25,7 @@ type options struct {
 	fall           fall.F
 	enableFullName bool
 	caseSensitive  bool
+	debug          bool
 }
 
 // Tailscale is the plugin handler to register Tailscale hosts to DNS
@@ -39,6 +41,13 @@ type Tailscale struct {
 type Host struct {
 	IP4 *net.IP
 	IP6 *net.IP
+}
+
+func (h *Tailscale) Debugf(msg string, args ...any) {
+	if !h.options.debug {
+		return
+	}
+	fmt.Printf("[DEBUG] wireguard: "+msg, args...)
 }
 
 func (h *Tailscale) updateHosts(ctx context.Context) error {
@@ -66,6 +75,11 @@ func (h *Tailscale) updateHosts(ctx context.Context) error {
 				addr,
 			)
 		}
+
+		if h.options.debug {
+			h.Debugf("hosts updated. diff: %s", cmp.Diff(h.hostMap, newMap))
+		}
+
 		newMap[name] = host
 	}
 
@@ -98,28 +112,33 @@ func (h *Tailscale) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.M
 		v, ok := h.hostMap[qname]
 		h.mu.RUnlock()
 		if !ok {
-			return plugin.NextOrFailure(h.Name(), h.Next, ctx, w, r)
+			h.Debugf("no A record found. qname: %s", qname)
+			break
 		}
 		answers = a(qname, h.options.ttl, []net.IP{*v.IP4})
 	case dns.TypeAAAA:
 		// handle AAAA queries only if options.aaaa is true
 		if !h.options.aaaa {
-			return plugin.NextOrFailure(h.Name(), h.Next, ctx, w, r)
+			h.Debugf("queried for AAAA record but disabled. qname: %s", qname)
+			break
 		}
 		h.mu.RLock()
 		v, ok := h.hostMap[qname]
 		h.mu.RUnlock()
 		if !ok {
-			return plugin.NextOrFailure(h.Name(), h.Next, ctx, w, r)
+			h.Debugf("no AAAA record found for %s.", qname)
+			break
 		}
 		answers = aaaa(qname, h.options.ttl, []net.IP{*v.IP6})
 	default:
+		h.Debugf("ignored the query has unexpected type. query: %s, type: %d", qname, state.QType())
 		return plugin.NextOrFailure(h.Name(), h.Next, ctx, w, r)
 	}
 
 	// if no answers, return failure unless fallthrough is enabled
 	if len(answers) == 0 {
 		if h.options.fall.Through(qname) {
+			h.Debugf("no record found. qname: %s", qname)
 			return plugin.NextOrFailure(h.Name(), h.Next, ctx, w, r)
 		}
 		return dns.RcodeServerFailure, nil
@@ -134,6 +153,8 @@ func (h *Tailscale) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.M
 	if err != nil {
 		return 0, fmt.Errorf("failed to write response message: %w", err)
 	}
+
+	h.Debugf("found record. qname: %s, answer: %v", qname, answers)
 	return dns.RcodeSuccess, nil
 }
 

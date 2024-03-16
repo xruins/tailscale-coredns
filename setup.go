@@ -47,8 +47,9 @@ func periodicHostsUpdate(h *Tailscale) chan bool {
 func setup(c *caddy.Controller) error {
 	h, err := hostsParse(c)
 	if err != nil {
-		return plugin.Error("hosts", err)
+		return plugin.Error("tailscale", err)
 	}
+	h.Debugf("configured tailscale plugin. options: %+v", h.options)
 
 	parseChan := periodicHostsUpdate(h)
 
@@ -137,6 +138,8 @@ func hostsParse(c *caddy.Controller) (*Tailscale, error) {
 				h.options.caseSensitive = true
 			case "fullname":
 				h.options.enableFullName = true
+			case "debug":
+				h.options.debug = true
 			default:
 				return h, c.Errf("unknown property '%s'", c.Val())
 			}

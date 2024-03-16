@@ -27,7 +27,6 @@ func (h *nopPlugin) ServeDNS(_ context.Context, _ dns.ResponseWriter, _ *dns.Msg
 }
 func TestHostParse(t *testing.T) {
 	// need to implement mocking
-	t.Skip()
 	f := fall.F{}
 	f.SetZonesFromArgs([]string{"example.com", "example.org"})
 	tests := []struct {
@@ -69,7 +68,7 @@ tailscale a.example-ts.net password`,
 				reload:         60 * time.Second,
 				ttl:            60,
 				caseSensitive:  false,
-				enableFullName: false,
+				enableFullName: true,
 			},
 		},
 		{
