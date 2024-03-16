@@ -57,7 +57,7 @@ func (h *Tailscale) updateHosts(ctx context.Context) error {
 	}
 	newMap := make(map[string]*Host, len(devices))
 	for _, device := range devices {
-		name := strings.TrimPrefix(device.Name, h.options.tailnet)
+		name := strings.TrimPrefix(device.Name, "."+h.options.tailnet)
 		host := &Host{}
 		for _, addr := range device.Addresses {
 			ip := net.ParseIP(addr)
@@ -101,6 +101,9 @@ func (h *Tailscale) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.M
 	qname := state.Name()
 	if !h.options.caseSensitive {
 		qname = strings.ToLower(qname)
+	}
+	if h.options.enableFullName {
+		qname = strings.TrimPrefix(qname, h.options.tailnet)
 	}
 
 	var answers []dns.RR
