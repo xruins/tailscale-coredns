@@ -3,7 +3,7 @@ module github.com/xruins/tailscale-coredns
 go 1.22.1
 
 require (
-	github.com/coredns/caddy v1.1.1
+	github.com/coredns/caddy/v2 v2.1.1
 	github.com/coredns/coredns v1.11.2
 	github.com/miekg/dns v1.1.58
 	github.com/prometheus/client_golang v1.19.0
