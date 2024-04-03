@@ -1,6 +1,6 @@
 module github.com/xruins/tailscale-coredns
 
-go 1.22.1
+go 1.22.2
 
 require (
 	github.com/coredns/caddy/v2 v2.1.1
