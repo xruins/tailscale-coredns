@@ -40,8 +40,8 @@ type Tailscale struct {
 }
 
 type Host struct {
-	IP4 *net.IP
-	IP6 *net.IP
+	IP4 []net.IP
+	IP6 []net.IP
 }
 
 func (h *Tailscale) Debugf(msg string, args ...any) {
@@ -59,11 +59,11 @@ func (h *Tailscale) updateHosts(ctx context.Context) error {
 		for _, addr := range device.Addresses {
 			ip := net.ParseIP(addr)
 			if v4 := ip.To4(); v4 != nil {
-				host.IP4 = &v4
+				host.IP4 = append(host.IP4, v4)
 				continue
 			}
 			if v6 := ip.To16(); v6 != nil {
-				host.IP6 = &v6
+				host.IP6 = append(host.IP6, v6)
 				continue
 			}
 			return fmt.Errorf(
@@ -118,7 +118,7 @@ func (h *Tailscale) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.M
 			h.Debugf("no A record found. qname: %s", qname)
 			break
 		}
-		answers = a(qname, h.options.ttl, []net.IP{*v.IP4})
+		answers = a(qname, h.options.ttl, v.IP4)
 	case dns.TypeAAAA:
 		// handle AAAA queries only if options.aaaa is true
 		if !h.options.aaaa {
@@ -132,7 +132,7 @@ func (h *Tailscale) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.M
 			h.Debugf("no AAAA record found for %s.", qname)
 			break
 		}
-		answers = aaaa(qname, h.options.ttl, []net.IP{*v.IP6})
+		answers = aaaa(qname, h.options.ttl, v.IP6)
 	default:
 		h.Debugf("ignored the query has unexpected type. query: %s, type: %d", qname, state.QType())
 		return plugin.NextOrFailure(h.Name(), h.Next, ctx, w, r)

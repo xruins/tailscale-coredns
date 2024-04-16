@@ -38,13 +38,9 @@ func TestHostParse(t *testing.T) {
 		{
 			description: `all parameters are present`,
 			input: `
-tailscale example-ts.net 0123deadbeaf {
-    aaaa
-    reload 1s
-    ttl 60
-    casesensitive
-	enableFullName
-    fallthrough example.com example.org
+   tailscale ruinscorocoro@gmail.com tskey-api-kcpzy2Y5jK11CNTRL-A2M8gSQDk9h38jSstKAADhVMpUMVr744 {
+          fullname
+          fallthrough
 }`,
 			wantOptions: options{
 				aaaa:           true,
