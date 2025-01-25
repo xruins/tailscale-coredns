@@ -6,7 +6,7 @@ require (
 	github.com/coredns/caddy/v2 v2.1.1
 	github.com/coredns/coredns v1.12.0
 	github.com/google/go-cmp v0.6.0
-	github.com/miekg/dns v1.1.62
+	github.com/miekg/dns v1.1.63
 	github.com/prometheus/client_golang v1.20.5
 	github.com/tailscale/tailscale-client-go v1.17.0
 )
